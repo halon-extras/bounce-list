@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "description": "Bounce pattern schema",
+  "additionalProperties": false,
+  "properties": {
+    "lists": {
+      "type": "array",
+      "uniqueItems": true,
+      "description": "Bounce pattern lists",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "path"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "autoreload": {
+            "type": "boolean",
+            "default": true,
+            "description": "Auto-reload on configuration reload"
+          }
+        }
+      }
+    }
+  }
+}

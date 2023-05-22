@@ -1,0 +1,15 @@
+{
+	"name": "bounce-list",
+	"dockerComposeFile": [
+		"docker-compose.yaml"
+	],
+	"workspaceFolder": "/bounce-list",
+	"service": "halon-smtpd",
+	"overrideCommand": false,
+	"extensions": [
+		"Halon.vscode-halon",
+		"Halon.hsl-linter",
+		"Halon.hsl-debug",
+		"ms-vscode.cpptools"
+	]
+}
