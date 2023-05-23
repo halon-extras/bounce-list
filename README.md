@@ -47,7 +47,7 @@ The following syntax is supported in the bounce list file.
 /.*/,other
 ```
 
-Where the first column is the bounce pattern (PCRE, caseless matching), the second is the return value if there is a match, the third is the grouping and the fourth is the SMTP state.
+Where the first column is the bounce pattern (PCRE, caseless matching), the second is the returned value if there is a match, the third is the grouping and the fourth is the SMTP state.
 
 ## Exported commands
 
@@ -80,7 +80,7 @@ Check if an SMTP response diagnostic code matches a bounce pattern.
 
 **Returns**
 
-Returns a `string` if there is a match otherwise `none`. On error an exception is thrown.
+Returns an `array` with the index of `pattern` and `value` if there is a match otherwise `none`. On error an exception is thrown.
 
 **Example (Post-delivery)**
 

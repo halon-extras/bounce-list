@@ -21,8 +21,8 @@
                 }
             ]
         },
-        "returnType": "string or none",
-        "detail": "bounce_list(string id, string diagnosticcode[, string grouping[, string state]]): string or none",
+        "returnType": "array or none",
+        "detail": "bounce_list(string id, string diagnosticcode[, string grouping[, string state]]): array or none",
         "value": "bounce_list($0)",
         "documentation": "Check if an SMTP response diagnostic code matches a bounce pattern.",
         "link": "[Full documentation](https://github.com/halon-extras/bounce-list)"

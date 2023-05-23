@@ -12,15 +12,22 @@
 
 extern char *__progname;
 
+struct pcrePattern
+{
+	pcre* pcre_;
+	std::string value;
+	std::string pattern;
+};
+
 class bouncepatterns
 {
 	public:
 		std::string path;
 		bool autoreload = true;
-		std::map<std::string, std::map<std::string, std::list<std::pair<pcre*, std::string>>>> grouping_state_pattern;
-		std::map<std::string, std::list<std::pair<pcre*, std::string>>> grouping_default_state_pattern;
-		std::map<std::string, std::list<std::pair<pcre*, std::string>>> default_grouping_state_pattern;
-		std::list<std::pair<pcre*, std::string>> default_grouping_default_state_pattern;
+		std::map<std::string, std::map<std::string, std::list<pcrePattern>>> grouping_state_pattern;
+		std::map<std::string, std::list<pcrePattern>> grouping_default_state_pattern;
+		std::map<std::string, std::list<pcrePattern>> default_grouping_state_pattern;
+		std::list<pcrePattern> default_grouping_default_state_pattern;
 		std::list<pcre*> regexs;
 		~bouncepatterns()
 		{
@@ -30,7 +37,7 @@ class bouncepatterns
 };
 
 void list_open(const std::string& list, const std::string& path, bool autoreload);
-std::string list_lookup(const std::string& list, const std::string& grouping, const std::string& state, const std::string& message);
+std::pair<std::string, std::string> list_lookup(const std::string& list, const std::string& grouping, const std::string& state, const std::string& message);
 void list_reopen(const std::string& list);
 void list_parse(const std::string& path, std::shared_ptr<bouncepatterns> list);
 
@@ -105,8 +112,8 @@ bool Halon_command_execute(HalonCommandExecuteContext* hcec, size_t argc, const 
 		}
 		if (argc > 2 && strcmp(argv[0], "test") == 0)
 		{
-			std::string t = list_lookup(argv[1], argv[2], argc > 3 ? argv[3] : "", argc > 4 ? argv[4] : "");
-			*out = strdup(t.c_str());
+			auto t = list_lookup(argv[1], argv[2], argc > 3 ? argv[3] : "", argc > 4 ? argv[4] : "");
+			*out = strdup((t.first + "\n" + t.second).c_str());
 			return true;
 		}
 		throw std::runtime_error("No such command");
@@ -173,10 +180,16 @@ void bounce_list(HalonHSLContext* hhc, HalonHSLArguments* args, HalonHSLValue* r
 	}
 
 	try {
-		std::string r = list_lookup(id, std::string(text, textlen), grouping ? grouping : "", state ? state : "");
-		if (r.empty())
+		auto r = list_lookup(id, std::string(text, textlen), grouping ? grouping : "", state ? state : "");
+		if (r.second.empty())
 			return;
-		HalonMTA_hsl_value_set(ret, HALONMTA_HSL_TYPE_STRING, r.c_str(), r.size());
+		HalonHSLValue *k, *v;
+		HalonMTA_hsl_value_array_add(ret, &k, &v);
+		HalonMTA_hsl_value_set(k, HALONMTA_HSL_TYPE_STRING, "pattern", 0);
+		HalonMTA_hsl_value_set(v, HALONMTA_HSL_TYPE_STRING, r.first.c_str(), r.first.size());
+		HalonMTA_hsl_value_array_add(ret, &k, &v);
+		HalonMTA_hsl_value_set(k, HALONMTA_HSL_TYPE_STRING, "value", 0);
+		HalonMTA_hsl_value_set(v, HALONMTA_HSL_TYPE_STRING, r.second.c_str(), r.second.size());
 	} catch (const std::runtime_error& ex) {
 		HalonHSLValue* e = HalonMTA_hsl_throw(hhc);
 		HalonMTA_hsl_value_set(e, HALONMTA_HSL_TYPE_EXCEPTION, ex.what(), 0);
@@ -223,16 +236,16 @@ void cb2(int c, void *p)
 	if (x->col.size() > 2 && !x->col[2].empty())
 	{
 		if (x->col.size() > 3 && !x->col[3].empty())
-			x->ptr->grouping_state_pattern[x->col[2]][x->col[3]].push_back({ re, x->col[1] });
+			x->ptr->grouping_state_pattern[x->col[2]][x->col[3]].push_back({ re, x->col[1], x->col[0] });
 		else
-			x->ptr->grouping_default_state_pattern[x->col[2]].push_back({ re, x->col[1] });
+			x->ptr->grouping_default_state_pattern[x->col[2]].push_back({ re, x->col[1], x->col[0] });
 	}
 	else
 	{
 		if (x->col.size() > 3 && !x->col[3].empty())
-			x->ptr->default_grouping_state_pattern[x->col[3]].push_back({ re, x->col[1] });
+			x->ptr->default_grouping_state_pattern[x->col[3]].push_back({ re, x->col[1], x->col[0] });
 		else
-			x->ptr->default_grouping_default_state_pattern.push_back({ re, x->col[1] });
+			x->ptr->default_grouping_default_state_pattern.push_back({ re, x->col[1], x->col[0] });
 	}
 	x->ptr->regexs.push_back(re);
 }
@@ -283,7 +296,7 @@ void list_open(const std::string& list, const std::string& path, bool autoreload
 	listslock.unlock();
 }
 
-std::string list_lookup(const std::string& list, const std::string& message, const std::string& grouping, const std::string& state)
+std::pair<std::string, std::string> list_lookup(const std::string& list, const std::string& message, const std::string& grouping, const std::string& state)
 {
 	listslock.lock();
 	auto l = lists.find(list);
@@ -305,8 +318,9 @@ std::string list_lookup(const std::string& list, const std::string& message, con
 			{
 				for (const auto & p : x2->second)
 				{
-					if (p.first)
-						return p.second;
+					int rc = pcre_exec(p.pcre_, nullptr, message.c_str(), (int)message.size(), 0, PCRE_PARTIAL | PCRE_NO_UTF8_CHECK, nullptr, 0);
+					if (rc == 0)
+						return { p.pattern, p.value };
 				}
 			}
 		}
@@ -318,9 +332,9 @@ std::string list_lookup(const std::string& list, const std::string& message, con
 		{
 			for (const auto & p : x->second)
 			{
-				int rc = pcre_exec(p.first, nullptr, message.c_str(), (int)message.size(), 0, PCRE_PARTIAL | PCRE_NO_UTF8_CHECK, nullptr, 0);
+				int rc = pcre_exec(p.pcre_, nullptr, message.c_str(), (int)message.size(), 0, PCRE_PARTIAL | PCRE_NO_UTF8_CHECK, nullptr, 0);
 				if (rc == 0)
-					return p.second;
+					return { p.pattern, p.value };
 			}
 		}
 	}
@@ -331,19 +345,19 @@ std::string list_lookup(const std::string& list, const std::string& message, con
 		{
 			for (const auto & p : x->second)
 			{
-				int rc = pcre_exec(p.first, nullptr, message.c_str(), (int)message.size(), 0, PCRE_PARTIAL | PCRE_NO_UTF8_CHECK, nullptr, 0);
+				int rc = pcre_exec(p.pcre_, nullptr, message.c_str(), (int)message.size(), 0, PCRE_PARTIAL | PCRE_NO_UTF8_CHECK, nullptr, 0);
 				if (rc == 0)
-					return p.second;
+					return { p.pattern, p.value };
 			}
 		}
 	}
 	for (const auto & p : bouncelist->default_grouping_default_state_pattern)
 	{
-		int rc = pcre_exec(p.first, nullptr, message.c_str(), (int)message.size(), 0, PCRE_PARTIAL | PCRE_NO_UTF8_CHECK, nullptr, 0);
+		int rc = pcre_exec(p.pcre_, nullptr, message.c_str(), (int)message.size(), 0, PCRE_PARTIAL | PCRE_NO_UTF8_CHECK, nullptr, 0);
 		if (rc == 0)
-			return p.second;
+			return { p.pattern, p.value };
 	}
-	return "";
+	return {};
 }
 
 void list_reopen(const std::string& list)
