@@ -75,24 +75,22 @@ bool Halon_init(HalonInitContext* hic)
 HALON_EXPORT
 void Halon_config_reload(HalonConfig* cfg)
 {
-	listslock.lock();
 	for (auto & list : lists)
 	{
+		listslock.lock();
 		if (!list.second->autoreload)
+		{
+			listslock.unlock();
 			continue;
-
-		auto bouncelist = std::make_shared<bouncepatterns>();
-		bouncelist->path = list.second->path;
-		bouncelist->autoreload = list.second->autoreload;
+		}
+		listslock.unlock();
 
 		try {
-			list_parse(bouncelist->path, bouncelist);
-			list.second = bouncelist;
+			list_reopen(list.first);
 		} catch (const std::runtime_error& e) {
 			syslog(LOG_CRIT, "%s", e.what());
 		}
 	}
-	listslock.unlock();
 }
 
 HALON_EXPORT
