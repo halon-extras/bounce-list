@@ -33,8 +33,8 @@ plugins:
   - id: bounce-list
     config:
       lists:
-        - id: list1
-          path: /var/run/halon/list1.csv
+        - id: bounce-classifications
+          path: /opt/halon/plugins/data/bounce-classifications/classifications.csv
 ```
 
 ### Bounce list format
