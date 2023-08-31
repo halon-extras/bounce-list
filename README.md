@@ -47,7 +47,7 @@ The following syntax is supported in the bounce list file.
 /.*/,other
 ```
 
-Where the first column is the bounce pattern (PCRE, caseless matching), the second is the returned value if there is a match, the third is the grouping and the fourth is the SMTP state.
+Where the first column is the bounce pattern (PCRE, caseless matching), the second is the returned value if there is a match, the third is the grouping, the fourth is the SMTP state and the fifth is a comment.
 
 ## Exported commands
 

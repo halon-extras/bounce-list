@@ -220,7 +220,7 @@ void cb1(void *s, size_t i, void *p)
 void cb2(int c, void *p)
 {
 	auto x = (csv_parser_ptr*)p;
-	if (x->col.size() < 2 || x->col.size() > 4)
+	if (x->col.size() < 2 || x->col.size() > 5)
 	{
 		x->error = true;
 		return;
