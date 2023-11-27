@@ -10,6 +10,3 @@ services:
     volumes:
       - ../:/bounce-list
       - ./smtpd/dist:/etc/halon
-      - halon-spool:/var/spool/halon
-volumes:
-  halon-spool:
