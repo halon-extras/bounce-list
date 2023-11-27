@@ -18,3 +18,7 @@ environment:
     nofile: 70000
 plugins:
   - id: bounce-list
+    config:
+      lists:
+        - id: list1
+          path: /etc/halon/list1.csv

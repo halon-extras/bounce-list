@@ -34,7 +34,7 @@ plugins:
     config:
       lists:
         - id: list1
-          path: /var/run/halon/list1.csv
+          path: /etc/halon/list1.csv
 ```
 
 ### Bounce list format
