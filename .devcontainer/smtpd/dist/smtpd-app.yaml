@@ -2,7 +2,12 @@ resolver:
   cache:
     size: 10000
 scripting:
-  files: []
+  files:
+  - data: |
+      import { bounce_list } from "extras://bounce-list";
+
+      echo bounce_list("list1", "550 5.7.1 Email quota exceeded.", "&google", "EOD");
+    id: test.hsl
   hooks:
     eod:
     - data: |
