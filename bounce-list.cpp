@@ -181,7 +181,7 @@ void bounce_list(HalonHSLContext* hhc, HalonHSLArguments* args, HalonHSLValue* r
 
 	try {
 		auto r = list_lookup(id, std::string(text, textlen), grouping ? grouping : "", state ? state : "");
-		if (r.second.empty())
+		if (r.first.empty())
 			return;
 		HalonHSLValue *k, *v;
 		HalonMTA_hsl_value_array_add(ret, &k, &v);
@@ -220,7 +220,7 @@ void cb1(void *s, size_t i, void *p)
 void cb2(int c, void *p)
 {
 	auto x = (csv_parser_ptr*)p;
-	if (x->col.size() < 2 || x->col.size() > 5)
+	if (x->col.size() < 1 || x->col.size() > 5)
 	{
 		x->error = true;
 		return;
@@ -238,14 +238,14 @@ void cb2(int c, void *p)
 		if (x->col.size() > 3 && !x->col[3].empty())
 			x->ptr->grouping_state_pattern[x->col[2]][x->col[3]].push_back({ re, x->col[1], x->col[0] });
 		else
-			x->ptr->grouping_default_state_pattern[x->col[2]].push_back({ re, x->col[1], x->col[0] });
+			x->ptr->grouping_default_state_pattern[x->col[2]].push_back({ re, x->col.size() > 1 ? x->col[1] : "", x->col[0] });
 	}
 	else
 	{
 		if (x->col.size() > 3 && !x->col[3].empty())
 			x->ptr->default_grouping_state_pattern[x->col[3]].push_back({ re, x->col[1], x->col[0] });
 		else
-			x->ptr->default_grouping_default_state_pattern.push_back({ re, x->col[1], x->col[0] });
+			x->ptr->default_grouping_default_state_pattern.push_back({ re, x->col.size() > 1 ? x->col[1] : "", x->col[0] });
 	}
 	x->ptr->regexs.push_back(re);
 }
