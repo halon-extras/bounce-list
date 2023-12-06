@@ -261,25 +261,33 @@ void list_parse(const std::string& path, std::shared_ptr<bouncepatterns> list)
 	ptr.ptr = list.get();
 	csv_init(&p, 0);
 	std::string line;
-	size_t errors_format = 0, errors = 0;
+	size_t errors_format = 0, errors = 0, last_error = 0, i = 0;
 	while (std::getline(file, line))
 	{
+		++i;
 		ptr.col.clear();
 		ptr.error = false;
 		if (csv_parse(&p, line.c_str(), line.size(), cb1, cb2, &ptr) != line.size())
+		{
 			++errors_format;
+			last_error = i;
+		}
 		csv_fini(&p, cb1, cb2, &ptr);
 		if (ptr.error)
+		{
 			++errors;
+			last_error = i;
+		}
 	}
 	csv_free(&p);
 	file.close();
 	if (strcmp(__progname, "smtpd") == 0)
-		syslog(LOG_INFO, "bounce-list %s loaded: %zu regexes, %zu format-errors, %zu data-errors",
+		syslog(LOG_INFO, "bounce-list %s loaded, regexes: %zu, format-errors: %zu, data-errors %zu, last-error: %s",
 			path.c_str(),
 			list->regexs.size(),
 			errors_format,
-			errors
+			errors,
+			last_error > 0 ? std::to_string(last_error).c_str() : "n/a"
 		);
 }
 
