@@ -227,6 +227,13 @@ void cb2(int c, void *p)
 	}
 	const char* compile_error;
 	int eoffset;
+
+	if (x->col[0].size() > 2 && x->col[0][0] == '/' && x->col[0][x->col[0].size() - 1] != '/')
+	{
+		x->error = true;
+		return;
+	}
+
 	pcre* re = pcre_compile(x->col[0].size() > 2 && x->col[0][0] == '/' && x->col[0][x->col[0].size() - 1] == '/' ? x->col[0].substr(1, x->col[0].size() - 2).c_str() : x->col[0].c_str(), PCRE_CASELESS, &compile_error, &eoffset, nullptr);
 	if (!re)
 	{
