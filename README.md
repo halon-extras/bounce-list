@@ -78,6 +78,10 @@ Check if an SMTP response diagnostic code matches a bounce pattern.
 - grouping `string` - The grouping (`$arguments["grouping"]`)
 - state `string` - The SMTP state (`$arguments["attempt"]["result"]["state"]`)
 
+_Grouping_ enables you to restrict the scope of a rule to a specific named grouping (such as a list of rolled-up destinations.)
+
+_State_ enables you to restrict the scope of a rule to a specific point in the SMTP conversation, such as `EOD` - see [here](https://docs.halon.io/hsl/postdelivery.html?highlight=attempt%20result%20state#smtp-states) for all values.
+
 **Returns**
 
 Returns an `array` with the index of `pattern` and `value` if there is a match otherwise `none`. On error an exception is thrown.
