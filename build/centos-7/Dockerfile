@@ -4,6 +4,11 @@ LABEL org.opencontainers.image.authors="support@halon.io"
 ARG HALON_REPO_USER
 ARG HALON_REPO_PASS
 
+# CentOS 7 is now EOL, fetch files from vault
+RUN sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo
+RUN sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
+RUN sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
+
 RUN yum update -y && yum install -y epel-release
 
 RUN echo "[halon]" >> /etc/yum.repos.d/Halon.repo
@@ -15,6 +20,12 @@ RUN echo "enabled=1" >> /etc/yum.repos.d/Halon.repo
 RUN yum install -y halon-5.10.0
 
 RUN yum install -y centos-release-scl
+
+# CentOS 7 is now EOL, fetch files from vault
+RUN sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo
+RUN sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
+RUN sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
+
 RUN yum install -y devtoolset-8
 
 SHELL ["/usr/bin/scl", "enable", "devtoolset-8"]
