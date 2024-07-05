@@ -271,6 +271,9 @@ void list_parse(const std::string& path, std::shared_ptr<bouncepatterns> list)
 	size_t errors_format = 0, errors = 0, last_error = 0, i = 0;
 	while (std::getline(file, line))
 	{
+		// skip comments
+		if (line.size() > 0 && line[0] == '#')
+			continue;
 		++i;
 		ptr.col.clear();
 		ptr.error = false;
