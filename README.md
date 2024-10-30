@@ -44,10 +44,11 @@ The following syntax is supported in the bounce list file.
 ```
 /550 5.7.1 Email quota exceeded\./,other,&google,EOD
 /550 5.7.1 Email quota exceeded\./,other,&google
+/550 5.7.1\./,other,"&hotmail,&office365"
 /.*/,other
 ```
 
-Where the first column is the bounce pattern (PCRE, caseless matching), the second is the returned value if there is a match, the third is the grouping, the fourth is the SMTP state and the fifth is a comment. Lines starting with `#` are treated as comments.
+Where the first column is the bounce pattern (PCRE, caseless matching), the second is the returned value if there is a match, the third is the grouping (support list of groupings separated by comma), the fourth is the SMTP state and the fifth is a comment. Lines starting with `#` are treated as comments.
 
 ## Exported commands
 

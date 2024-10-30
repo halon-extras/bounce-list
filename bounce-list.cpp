@@ -5,6 +5,7 @@
 #include <mutex>
 #include <memory>
 #include <fstream>
+#include <sstream>
 #include <string.h>
 #include <syslog.h>
 #include <pcre.h>
@@ -242,10 +243,15 @@ void cb2(int c, void *p)
 	}
 	if (x->col.size() > 2 && !x->col[2].empty())
 	{
-		if (x->col.size() > 3 && !x->col[3].empty())
-			x->ptr->grouping_state_pattern[x->col[2]][x->col[3]].push_back({ re, x->col[1], x->col[0] });
-		else
-			x->ptr->grouping_default_state_pattern[x->col[2]].push_back({ re, x->col.size() > 1 ? x->col[1] : "", x->col[0] });
+		std::stringstream ss(x->col[2]);
+		std::string group;
+		while (std::getline(ss, group, ','))
+		{
+			if (x->col.size() > 3 && !x->col[3].empty())
+				x->ptr->grouping_state_pattern[group][x->col[3]].push_back({ re, x->col[1], x->col[0] });
+			else
+				x->ptr->grouping_default_state_pattern[group].push_back({ re, x->col.size() > 1 ? x->col[1] : "", x->col[0] });
+		}
 	}
 	else
 	{
