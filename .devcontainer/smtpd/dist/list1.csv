@@ -1,6 +1,4 @@
 # sample patterns
 /550 5.7.1 Email quota exceeded\./,other,&google,EOD
 /550 5.7.1 Email quota exceeded\./,other,&google
-/foo/,wop,&google
-/bar/,wap,"&google,&yahoo"
 /.*/,other
