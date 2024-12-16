@@ -19,7 +19,7 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH
 
 RUN apt-get install -y build-essential cmake git libpcre3-dev libcsv-dev
 
-RUN echo -n "UBU2004" > /OSRELEASE.txt
+RUN echo -n "UBU2204" > /OSRELEASE.txt
 
 RUN mkdir /var/log/halon && chown halon:halon /var/log/halon
 
