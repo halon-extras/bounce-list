@@ -37,13 +37,13 @@ class bouncepatterns
 		}
 };
 
-void list_open(const std::string& list, const std::string& path, bool autoreload);
-std::pair<std::string, std::string> list_lookup(const std::string& list, const std::string& grouping, const std::string& state, const std::string& message);
-void list_reopen(const std::string& list);
-void list_parse(const std::string& path, std::shared_ptr<bouncepatterns> list);
+static void list_open(const std::string& list, const std::string& path, bool autoreload);
+static std::pair<std::string, std::string> list_lookup(const std::string& list, const std::string& grouping, const std::string& state, const std::string& message);
+static void list_reopen(const std::string& list);
+static void list_parse(const std::string& path, std::shared_ptr<bouncepatterns> list);
 
-std::mutex listslock;
-std::map<std::string, std::shared_ptr<bouncepatterns>> lists;
+static std::mutex listslock;
+static std::map<std::string, std::shared_ptr<bouncepatterns>> lists;
 
 HALON_EXPORT
 int Halon_version()
@@ -124,8 +124,7 @@ bool Halon_command_execute(HalonCommandExecuteContext* hcec, size_t argc, const 
 	}
 }
 
-HALON_EXPORT
-void bounce_list(HalonHSLContext* hhc, HalonHSLArguments* args, HalonHSLValue* ret)
+static void bounce_list(HalonHSLContext* hhc, HalonHSLArguments* args, HalonHSLValue* ret)
 {
 	HalonHSLValue* x;
 	char* id = nullptr;
@@ -212,13 +211,13 @@ struct csv_parser_ptr
 	bool error = false;
 };
 
-void cb1(void *s, size_t i, void *p)
+static void cb1(void *s, size_t i, void *p)
 {
 	auto x = (csv_parser_ptr*)p;
 	x->col.push_back(std::string((char*)s, i).c_str());
 }
 
-void cb2(int c, void *p)
+static void cb2(int c, void *p)
 {
 	auto x = (csv_parser_ptr*)p;
 	if (x->col.size() < 1 || x->col.size() > 5)
@@ -263,7 +262,7 @@ void cb2(int c, void *p)
 	x->ptr->regexs.push_back(re);
 }
 
-void list_parse(const std::string& path, std::shared_ptr<bouncepatterns> list)
+static void list_parse(const std::string& path, std::shared_ptr<bouncepatterns> list)
 {
 	std::ifstream file(path);
 	if (!file.good())
@@ -307,7 +306,7 @@ void list_parse(const std::string& path, std::shared_ptr<bouncepatterns> list)
 		);
 }
 
-void list_open(const std::string& list, const std::string& path, bool autoreload)
+static void list_open(const std::string& list, const std::string& path, bool autoreload)
 {
 	auto bouncelist = std::make_shared<bouncepatterns>();
 	bouncelist->path = path;
@@ -320,7 +319,7 @@ void list_open(const std::string& list, const std::string& path, bool autoreload
 	listslock.unlock();
 }
 
-std::pair<std::string, std::string> list_lookup(const std::string& list, const std::string& message, const std::string& grouping, const std::string& state)
+static std::pair<std::string, std::string> list_lookup(const std::string& list, const std::string& message, const std::string& grouping, const std::string& state)
 {
 	listslock.lock();
 	auto l = lists.find(list);
@@ -384,7 +383,7 @@ std::pair<std::string, std::string> list_lookup(const std::string& list, const s
 	return {};
 }
 
-void list_reopen(const std::string& list)
+static void list_reopen(const std::string& list)
 {
 	listslock.lock();
 	auto l = lists.find(list);
