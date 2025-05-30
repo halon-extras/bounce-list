@@ -12,7 +12,7 @@ RUN echo "deb https://repo.halon.io/ focal stable" >> /etc/apt/sources.list.d/ha
 RUN echo "machine repo.halon.io login ${HALON_REPO_USER} password ${HALON_REPO_PASS}" >> /etc/apt/auth.conf
 RUN apt-get update && apt-get install -y halon=5.10.0
 
-RUN apt-get update && apt-get install -y build-essential cmake libpcre3-dev libcsv-dev
+RUN apt-get update && apt-get install -y build-essential cmake pkg-config libpcre2-dev libcsv-dev
 RUN echo -n "UBU2004" > /OSRELEASE.txt
 
 COPY build.sh /build.sh

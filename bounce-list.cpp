@@ -8,14 +8,15 @@
 #include <sstream>
 #include <string.h>
 #include <syslog.h>
-#include <pcre.h>
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
 #include <csv.h>
 
 extern char *__progname;
 
 struct pcrePattern
 {
-	pcre* pcre_;
+	pcre2_code* pcre_;
 	std::string value;
 	std::string pattern;
 };
@@ -29,11 +30,11 @@ class bouncepatterns
 		std::map<std::string, std::list<pcrePattern>> grouping_default_state_pattern;
 		std::map<std::string, std::list<pcrePattern>> default_grouping_state_pattern;
 		std::list<pcrePattern> default_grouping_default_state_pattern;
-		std::list<pcre*> regexs;
+		std::list<pcre2_code*> regexs;
 		~bouncepatterns()
 		{
 			for (auto re : regexs)
-				pcre_free(re);
+				pcre2_code_free(re);
 		}
 };
 
@@ -225,8 +226,6 @@ static void cb2(int c, void *p)
 		x->error = true;
 		return;
 	}
-	const char* compile_error;
-	int eoffset;
 
 	if (x->col[0].size() > 2 && x->col[0][0] == '/' && x->col[0][x->col[0].size() - 1] != '/')
 	{
@@ -234,7 +233,9 @@ static void cb2(int c, void *p)
 		return;
 	}
 
-	pcre* re = pcre_compile(x->col[0].size() > 2 && x->col[0][0] == '/' && x->col[0][x->col[0].size() - 1] == '/' ? x->col[0].substr(1, x->col[0].size() - 2).c_str() : x->col[0].c_str(), PCRE_CASELESS, &compile_error, &eoffset, nullptr);
+	int errorcode;
+	PCRE2_SIZE offset;
+	pcre2_code* re = pcre2_compile((PCRE2_SPTR)(x->col[0].size() > 2 && x->col[0][0] == '/' && x->col[0][x->col[0].size() - 1] == '/' ? x->col[0].substr(1, x->col[0].size() - 2).c_str() : x->col[0].c_str()), PCRE2_ZERO_TERMINATED, PCRE2_CASELESS, &errorcode, &offset, nullptr);
 	if (!re)
 	{
 		x->error = true;
@@ -331,6 +332,7 @@ static std::pair<std::string, std::string> list_lookup(const std::string& list, 
 	auto bouncelist = l->second;
 	listslock.unlock();
 
+	pcre2_match_data* match_data = pcre2_match_data_create(1, nullptr);
 	if (!grouping.empty() && !state.empty())
 	{
 		auto x = bouncelist->grouping_state_pattern.find(grouping);
@@ -341,9 +343,18 @@ static std::pair<std::string, std::string> list_lookup(const std::string& list, 
 			{
 				for (const auto & p : x2->second)
 				{
-					int rc = pcre_exec(p.pcre_, nullptr, message.c_str(), (int)message.size(), 0, PCRE_PARTIAL | PCRE_NO_UTF8_CHECK, nullptr, 0);
-					if (rc == 0)
+					int rc = pcre2_match(p.pcre_,
+								(PCRE2_SPTR)message.c_str(),
+								message.size(),
+								0,
+								PCRE2_NO_UTF_CHECK,
+								match_data,
+								nullptr);
+					if (rc >= 0)
+					{
+						pcre2_match_data_free(match_data);
 						return { p.pattern, p.value };
+					}
 				}
 			}
 		}
@@ -355,9 +366,18 @@ static std::pair<std::string, std::string> list_lookup(const std::string& list, 
 		{
 			for (const auto & p : x->second)
 			{
-				int rc = pcre_exec(p.pcre_, nullptr, message.c_str(), (int)message.size(), 0, PCRE_PARTIAL | PCRE_NO_UTF8_CHECK, nullptr, 0);
-				if (rc == 0)
+				int rc = pcre2_match(p.pcre_,
+							(PCRE2_SPTR)message.c_str(),
+							message.size(),
+							0,
+							PCRE2_NO_UTF_CHECK,
+							match_data,
+							nullptr);
+				if (rc >= 0)
+				{
+					pcre2_match_data_free(match_data);
 					return { p.pattern, p.value };
+				}
 			}
 		}
 	}
@@ -368,18 +388,38 @@ static std::pair<std::string, std::string> list_lookup(const std::string& list, 
 		{
 			for (const auto & p : x->second)
 			{
-				int rc = pcre_exec(p.pcre_, nullptr, message.c_str(), (int)message.size(), 0, PCRE_PARTIAL | PCRE_NO_UTF8_CHECK, nullptr, 0);
-				if (rc == 0)
+				int rc = pcre2_match(p.pcre_,
+							(PCRE2_SPTR)message.c_str(),
+							message.size(),
+							0,
+							PCRE2_NO_UTF_CHECK,
+							match_data,
+							nullptr);
+				if (rc >= 0)
+				{
+					pcre2_match_data_free(match_data);
 					return { p.pattern, p.value };
+				}
 			}
 		}
 	}
 	for (const auto & p : bouncelist->default_grouping_default_state_pattern)
 	{
-		int rc = pcre_exec(p.pcre_, nullptr, message.c_str(), (int)message.size(), 0, PCRE_PARTIAL | PCRE_NO_UTF8_CHECK, nullptr, 0);
-		if (rc == 0)
+		int rc = pcre2_match(p.pcre_,
+					(PCRE2_SPTR)message.c_str(),
+					message.size(),
+					0,
+					PCRE2_NO_UTF_CHECK,
+					match_data,
+					nullptr);
+		if (rc >= 0)
+		{
+			pcre2_match_data_free(match_data);
 			return { p.pattern, p.value };
+		}
 	}
+
+	pcre2_match_data_free(match_data);
 	return {};
 }
 

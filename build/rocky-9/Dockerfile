@@ -14,7 +14,7 @@ RUN echo "gpgkey=https://raw.githubusercontent.com/halon/changelog/master/pgp-ke
 RUN echo "enabled=1" >> /etc/yum.repos.d/Halon.repo
 RUN yum install -y halon-5.12.1
 
-RUN yum install -y cmake3 make gcc-c++ rpm-build pcre-devel libcsv-devel
+RUN yum install -y cmake3 make gcc-c++ rpm-build pcre2-devel libcsv-devel
 RUN echo -n "ROCKY9" > /OSRELEASE.txt
 
 COPY build.sh /build.sh
