@@ -7,6 +7,13 @@
             "type": "library",
             "name": "libcsv",
             "version": "3.0.3",
+            "licenses": [
+                {
+                    "license": {
+                        "id": "BSD-3-Clause"
+                    }
+                }
+            ],
             "externalReferences": [
                 {
                     "type": "website",
