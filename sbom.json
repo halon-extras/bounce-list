@@ -1,0 +1,18 @@
+{
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.4",
+    "version": 1,
+    "components": [
+        {
+            "type": "library",
+            "name": "libcsv",
+            "version": "3.0.3",
+            "externalReferences": [
+                {
+                    "type": "website",
+                    "url": "https://sourceforge.net/projects/libcsv/"
+                }
+            ]
+        }
+    ]
+}

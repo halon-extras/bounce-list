@@ -78,6 +78,7 @@ ENDIF()
 IF (OSRELEASE MATCHES "AZURE3")
 	INSTALL(FILES /external/lib/libcsv.so.3.0.2 DESTINATION lib RENAME libcsv.so.3)
 	INSTALL(FILES /tmp/halon/libcsv-3.0.3/COPYING.LESSER DESTINATION share/doc/plugins/bounce-list RENAME LICENSE.libcsv)
+	INSTALL(FILES "sbom.json" DESTINATION share/sbom/plugins RENAME ${PROJECT_NAME}.json)
 ENDIF()
 
 INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}/bounce-list.so.link" DESTINATION plugins/autoload/smtpd RENAME bounce-list.so)
