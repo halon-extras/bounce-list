@@ -39,7 +39,7 @@ class bouncepatterns
 };
 
 static void list_open(const std::string& list, const std::string& path, bool autoreload);
-static std::pair<std::string, std::string> list_lookup(const std::string& list, const std::string& grouping, const std::string& state, const std::string& message);
+static std::pair<std::string, std::string> list_lookup(const std::string& list, const std::string& message, const std::string& grouping, const std::string& state);
 static void list_reopen(const std::string& list);
 static void list_parse(const std::string& path, std::shared_ptr<bouncepatterns> list);
 
