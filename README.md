@@ -52,7 +52,7 @@ Where the first column is the bounce pattern (PCRE, caseless matching), the seco
 
 ## Exported commands
 
-The default is to auto reload bounce-list files when the configuration changes (`halonctl config reload`). However they can also be be reloaded manually using the halonctl command.
+The default is to auto reload bounce-list files when the configuration changes (`halonctl config reload`). However they can also be reloaded manually using the halonctl command.
 
 ```
 halonctl plugin command bounce-list reload list1
